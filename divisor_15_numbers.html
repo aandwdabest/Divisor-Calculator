@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>15 個數字 Divisor 計算器</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --soft-card: #f9fbff;
+      --text: #172033;
+      --muted: #657085;
+      --border: #dfe4ee;
+      --accent: #2f6fed;
+      --accent-dark: #2559bf;
+      --danger: #b42318;
+      --ok: #067647;
+      --shadow: 0 12px 30px rgba(18, 28, 45, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111827;
+        --card: #1f2937;
+        --soft-card: #253244;
+        --text: #f8fafc;
+        --muted: #b6c2d3;
+        --border: #334155;
+        --accent: #7aa2ff;
+        --accent-dark: #9bb8ff;
+        --danger: #ffb4ab;
+        --ok: #8ee0b7;
+        --shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 40px auto;
+    }
+
+    header {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      letter-spacing: -0.04em;
+    }
+
+    .lead {
+      max-width: 820px;
+      color: var(--muted);
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .language-box {
+      display: grid;
+      gap: 6px;
+      min-width: 220px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--soft-card);
+      font-weight: 700;
+    }
+
+    select,
+    input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      color: var(--text);
+      background: var(--card);
+      outline: none;
+    }
+
+    select:focus,
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.20);
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 18px 0 22px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    button:active { transform: translateY(1px); }
+    button:disabled { cursor: not-allowed; opacity: 0.6; }
+
+    .primary {
+      color: #fff;
+      background: var(--accent);
+    }
+
+    .primary:hover:not(:disabled) { background: var(--accent-dark); }
+
+    .secondary {
+      color: var(--text);
+      background: transparent;
+      border: 1px solid var(--border);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label.input-card {
+      display: grid;
+      gap: 6px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--soft-card);
+      font-weight: 700;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin: 0 0 16px;
+    }
+
+    #status {
+      min-height: 1.6em;
+      color: var(--muted);
+      margin: 0 0 16px;
+      font-weight: 650;
+    }
+
+    #summary {
+      margin: 18px 0 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--soft-card);
+      color: var(--muted);
+    }
+
+    .result-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .result-card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      background: var(--soft-card);
+      overflow-wrap: anywhere;
+    }
+
+    .result-card h2 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+
+    .meta {
+      color: var(--muted);
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+    }
+
+    .divisors {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      white-space: pre-wrap;
+    }
+
+    .error { color: var(--danger); font-weight: 700; }
+    .ok { color: var(--ok); font-weight: 700; }
+
+    @media (max-width: 850px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .top-row { display: grid; }
+      .language-box { min-width: 0; max-width: 360px; }
+    }
+
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 20px, 1120px); margin: 24px auto; }
+      .grid { grid-template-columns: 1fr; }
+      .panel { padding: 16px; border-radius: 18px; }
+      .controls { display: grid; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="top-row">
+        <div>
+          <h1 id="pageTitle"></h1>
+          <p class="lead" id="pageLead"></p>
+        </div>
+
+        <label class="language-box" for="languageSelect">
+          <span id="languageLabel"></span>
+          <select id="languageSelect" autocomplete="off">
+            <option value="en">English</option>
+            <option value="zh-Hant">中文（繁體）</option>
+            <option value="zh-Hans">中文（简体）</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <section class="panel" aria-labelledby="formTitle">
+      <h2 id="formTitle"></h2>
+      <p class="hint" id="inputHint"></p>
+
+      <div id="inputs" class="grid"></div>
+
+      <div class="controls">
+        <button class="primary" id="calculateBtn" type="button"></button>
+        <button class="secondary" id="sampleBtn" type="button"></button>
+        <button class="secondary" id="copyBtn" type="button"></button>
+        <button class="secondary" id="clearBtn" type="button"></button>
+      </div>
+
+      <p id="status" role="status" aria-live="polite"></p>
+      <div id="summary" hidden></div>
+      <div id="results" class="result-list"></div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var MAX_INPUTS = 15;
+      var DEFAULT_LANGUAGE = "zh-Hant";
+      var STORAGE_KEY = "divisorCalculatorLanguage";
+      var latestDivisorResults = "";
+      var currentLanguage = DEFAULT_LANGUAGE;
+
+      var translations = {
+        en: {
+          documentTitle: "15-Number Divisor Calculator",
+          pageTitle: "15-Number Divisor Calculator",
+          pageLead: "Enter up to 15 integers. The site lists every positive divisor for each number, the divisor count for each number, the sum of divisors for each number, the total divisor count, the combined divisor sum, and the GCD of all valid inputs. 0 is marked as an error because its divisors are not a finite set.",
+          languageLabel: "Language",
+          formTitle: "Enter numbers",
+          inputHint: "Positive or negative integers are accepted. Negative values are converted to their absolute value. Very large primes or semiprimes may take longer.",
+          inputLabel: function (index) { return "Number " + index; },
+          inputPlaceholder: function (value) { return "Example: " + value; },
+          calculateButton: "Calculate divisors",
+          sampleButton: "Fill sample",
+          copyButton: "Copy results",
+          clearButton: "Clear",
+          statusReady: "Ready.",
+          statusUnsupported: "This browser does not support BigInt. Please use a current Safari, Chrome, Edge, or Firefox version.",
+          statusCalculating: "Calculating...",
+          statusProcessing: function (index) { return "Processing number " + index + "..."; },
+          statusNeedInput: "Please enter at least one integer.",
+          statusDone: "Calculation complete.",
+          statusNoValid: "No valid integers were available to calculate.",
+          statusSample: "Sample values filled in.",
+          statusCleared: "Cleared.",
+          statusNoCopy: "There are no results to copy yet.",
+          statusCopied: "Results copied to the clipboard.",
+          statusManualCopy: "Direct copying was blocked. The results have been selected; press Command+C or use Copy.",
+          statusCopyBlocked: "The browser did not allow copying. Please select and copy the results manually.",
+          statusFailed: "Calculation failed. Try smaller integers or check the input format.",
+          integerError: "Please enter an integer, not a decimal, space, or symbol.",
+          zeroError: "0 has infinitely many divisors and cannot be listed as a finite set.",
+          inputErrorTitle: "Input error",
+          notCalculated: "Not calculated",
+          systemErrorTitle: "System error",
+          completeLabel: "Complete.",
+          validInputs: "Valid inputs",
+          errors: "errors",
+          totalDivisorCount: "Total divisor count across valid inputs",
+          totalDivisorSum: "Combined sum of all divisors",
+          gcd: "GCD of all valid inputs",
+          originalInput: "Original input",
+          usedForCalculation: "used for calculation",
+          negativeNote: "original input was negative; absolute value was used",
+          divisorCount: "divisor count",
+          divisorSum: "divisor sum",
+          divisorsLabel: "Divisors",
+          inputErrorText: function (index) { return "Number " + index + ": input error"; },
+          resultTextPrefix: function (index) { return "Number " + index; }
+        },
+        "zh-Hant": {
+          documentTitle: "15 個數字 Divisor 計算器",
+          pageTitle: "15 個數字 Divisor 計算器",
+          pageLead: "輸入最多 15 個整數，網站會列出每個數字的所有正因數 divisor、每個數字的 divisor 數量、每個數字的 divisor 加總、全部有效輸入的 divisor 總數、全部 divisor 加總，並額外計算已填數字的最大公因數 GCD。0 的因數不是有限集合，因此會被標示為錯誤。",
+          languageLabel: "語言",
+          formTitle: "輸入數字",
+          inputHint: "可輸入正整數或負整數；負數會用絕對值計算正因數。大型質數或很大的半質數可能需要較久。",
+          inputLabel: function (index) { return "數字 " + index; },
+          inputPlaceholder: function (value) { return "例如：" + value; },
+          calculateButton: "計算 divisors",
+          sampleButton: "填入範例",
+          copyButton: "複製結果",
+          clearButton: "清除",
+          statusReady: "準備完成。",
+          statusUnsupported: "這個瀏覽器不支援 BigInt。請使用目前版本的 Safari、Chrome、Edge 或 Firefox。",
+          statusCalculating: "計算中...",
+          statusProcessing: function (index) { return "正在處理第 " + index + " 個數字..."; },
+          statusNeedInput: "請至少輸入一個整數。",
+          statusDone: "計算完成。",
+          statusNoValid: "沒有可計算的有效整數。",
+          statusSample: "範例已填入。",
+          statusCleared: "已清除。",
+          statusNoCopy: "目前沒有可複製的結果。",
+          statusCopied: "結果已複製到剪貼簿。",
+          statusManualCopy: "瀏覽器阻擋直接複製；結果已被選取，請按 Command+C 或使用複製。",
+          statusCopyBlocked: "瀏覽器不允許複製；請手動選取結果。",
+          statusFailed: "計算失敗。請嘗試較小的整數，或檢查輸入格式。",
+          integerError: "請輸入整數，不要輸入小數、空白或符號。",
+          zeroError: "0 有無限多個 divisor，無法列成有限清單。",
+          inputErrorTitle: "輸入錯誤",
+          notCalculated: "未計算",
+          systemErrorTitle: "系統錯誤",
+          completeLabel: "已完成。",
+          validInputs: "有效輸入",
+          errors: "錯誤",
+          totalDivisorCount: "全部有效輸入的 divisor 總數",
+          totalDivisorSum: "全部 divisor 加總",
+          gcd: "所有有效輸入的最大公因數 GCD",
+          originalInput: "原輸入",
+          usedForCalculation: "用於計算",
+          negativeNote: "原輸入為負數，已用絕對值計算",
+          divisorCount: "divisor 數量",
+          divisorSum: "divisor 加總",
+          divisorsLabel: "Divisors",
+          inputErrorText: function (index) { return "數字 " + index + ": 輸入錯誤"; },
+          resultTextPrefix: function (index) { return "數字 " + index; }
+        },
+        "zh-Hans": {
+          documentTitle: "15 个数字 Divisor 计算器",
+          pageTitle: "15 个数字 Divisor 计算器",
+          pageLead: "输入最多 15 个整数，网站会列出每个数字的所有正因数 divisor、每个数字的 divisor 数量、每个数字的 divisor 加总、全部有效输入的 divisor 总数、全部 divisor 加总，并额外计算已填数字的最大公因数 GCD。0 的因数不是有限集合，因此会被标示为错误。",
+          languageLabel: "语言",
+          formTitle: "输入数字",
+          inputHint: "可输入正整数或负整数；负数会用绝对值计算正因数。大型质数或很大的半质数可能需要较久。",
+          inputLabel: function (index) { return "数字 " + index; },
+          inputPlaceholder: function (value) { return "例如：" + value; },
+          calculateButton: "计算 divisors",
+          sampleButton: "填入示例",
+          copyButton: "复制结果",
+          clearButton: "清除",
+          statusReady: "准备完成。",
+          statusUnsupported: "这个浏览器不支持 BigInt。请使用当前版本的 Safari、Chrome、Edge 或 Firefox。",
+          statusCalculating: "计算中...",
+          statusProcessing: function (index) { return "正在处理第 " + index + " 个数字..."; },
+          statusNeedInput: "请至少输入一个整数。",
+          statusDone: "计算完成。",
+          statusNoValid: "没有可计算的有效整数。",
+          statusSample: "示例已填入。",
+          statusCleared: "已清除。",
+          statusNoCopy: "目前没有可复制的结果。",
+          statusCopied: "结果已复制到剪贴板。",
+          statusManualCopy: "浏览器阻挡直接复制；结果已被选中，请按 Command+C 或使用复制。",
+          statusCopyBlocked: "浏览器不允许复制；请手动选取结果。",
+          statusFailed: "计算失败。请尝试较小的整数，或检查输入格式。",
+          integerError: "请输入整数，不要输入小数、空白或符号。",
+          zeroError: "0 有无限多个 divisor，无法列成有限清单。",
+          inputErrorTitle: "输入错误",
+          notCalculated: "未计算",
+          systemErrorTitle: "系统错误",
+          completeLabel: "已完成。",
+          validInputs: "有效输入",
+          errors: "错误",
+          totalDivisorCount: "全部有效输入的 divisor 总数",
+          totalDivisorSum: "全部 divisor 加总",
+          gcd: "所有有效输入的最大公因数 GCD",
+          originalInput: "原输入",
+          usedForCalculation: "用于计算",
+          negativeNote: "原输入为负数，已用绝对值计算",
+          divisorCount: "divisor 数量",
+          divisorSum: "divisor 加总",
+          divisorsLabel: "Divisors",
+          inputErrorText: function (index) { return "数字 " + index + ": 输入错误"; },
+          resultTextPrefix: function (index) { return "数字 " + index; }
+        },
+        fr: {
+          documentTitle: "Calculateur de diviseurs pour 15 nombres",
+          pageTitle: "Calculateur de diviseurs pour 15 nombres",
+          pageLead: "Entrez jusqu’à 15 entiers. Le site affiche tous les diviseurs positifs de chaque nombre, le nombre de diviseurs, la somme des diviseurs, le nombre total de diviseurs, la somme combinée des diviseurs et le PGCD de toutes les entrées valides. 0 est signalé comme une erreur, car ses diviseurs ne forment pas un ensemble fini.",
+          languageLabel: "Langue",
+          formTitle: "Entrer les nombres",
+          inputHint: "Les entiers positifs ou négatifs sont acceptés. Les valeurs négatives sont converties en valeur absolue. Les très grands nombres premiers ou semi-premiers peuvent prendre plus de temps.",
+          inputLabel: function (index) { return "Nombre " + index; },
+          inputPlaceholder: function (value) { return "Exemple : " + value; },
+          calculateButton: "Calculer les diviseurs",
+          sampleButton: "Remplir un exemple",
+          copyButton: "Copier les résultats",
+          clearButton: "Effacer",
+          statusReady: "Prêt.",
+          statusUnsupported: "Ce navigateur ne prend pas en charge BigInt. Utilisez une version actuelle de Safari, Chrome, Edge ou Firefox.",
+          statusCalculating: "Calcul en cours...",
+          statusProcessing: function (index) { return "Traitement du nombre " + index + "..."; },
+          statusNeedInput: "Veuillez saisir au moins un entier.",
+          statusDone: "Calcul terminé.",
+          statusNoValid: "Aucun entier valide n’était disponible pour le calcul.",
+          statusSample: "Valeurs d’exemple remplies.",
+          statusCleared: "Effacé.",
+          statusNoCopy: "Il n’y a pas encore de résultats à copier.",
+          statusCopied: "Résultats copiés dans le presse-papiers.",
+          statusManualCopy: "La copie directe a été bloquée. Les résultats ont été sélectionnés ; appuyez sur Command+C ou utilisez Copier.",
+          statusCopyBlocked: "Le navigateur n’a pas autorisé la copie. Veuillez sélectionner et copier les résultats manuellement.",
+          statusFailed: "Le calcul a échoué. Essayez des entiers plus petits ou vérifiez le format d’entrée.",
+          integerError: "Veuillez saisir un entier, pas un nombre décimal, un espace ou un symbole.",
+          zeroError: "0 possède une infinité de diviseurs et ne peut pas être listé comme un ensemble fini.",
+          inputErrorTitle: "Erreur de saisie",
+          notCalculated: "Non calculé",
+          systemErrorTitle: "Erreur système",
+          completeLabel: "Terminé.",
+          validInputs: "Entrées valides",
+          errors: "erreurs",
+          totalDivisorCount: "Nombre total de diviseurs pour les entrées valides",
+          totalDivisorSum: "Somme combinée de tous les diviseurs",
+          gcd: "PGCD de toutes les entrées valides",
+          originalInput: "Entrée d’origine",
+          usedForCalculation: "utilisée pour le calcul",
+          negativeNote: "l’entrée d’origine était négative ; la valeur absolue a été utilisée",
+          divisorCount: "nombre de diviseurs",
+          divisorSum: "somme des diviseurs",
+          divisorsLabel: "Diviseurs",
+          inputErrorText: function (index) { return "Nombre " + index + " : erreur de saisie"; },
+          resultTextPrefix: function (index) { return "Nombre " + index; }
+        },
+        es: {
+          documentTitle: "Calculadora de divisores para 15 números",
+          pageTitle: "Calculadora de divisores para 15 números",
+          pageLead: "Introduce hasta 15 enteros. El sitio muestra todos los divisores positivos de cada número, la cantidad de divisores, la suma de divisores, la cantidad total de divisores, la suma combinada de divisores y el MCD de todas las entradas válidas. 0 se marca como error porque sus divisores no forman un conjunto finito.",
+          languageLabel: "Idioma",
+          formTitle: "Introducir números",
+          inputHint: "Se aceptan enteros positivos o negativos. Los valores negativos se convierten a su valor absoluto. Los primos muy grandes o semiprimos grandes pueden tardar más.",
+          inputLabel: function (index) { return "Número " + index; },
+          inputPlaceholder: function (value) { return "Ejemplo: " + value; },
+          calculateButton: "Calcular divisores",
+          sampleButton: "Rellenar ejemplo",
+          copyButton: "Copiar resultados",
+          clearButton: "Borrar",
+          statusReady: "Listo.",
+          statusUnsupported: "Este navegador no admite BigInt. Usa una versión actual de Safari, Chrome, Edge o Firefox.",
+          statusCalculating: "Calculando...",
+          statusProcessing: function (index) { return "Procesando el número " + index + "..."; },
+          statusNeedInput: "Introduce al menos un entero.",
+          statusDone: "Cálculo completo.",
+          statusNoValid: "No había enteros válidos para calcular.",
+          statusSample: "Valores de ejemplo rellenados.",
+          statusCleared: "Borrado.",
+          statusNoCopy: "Todavía no hay resultados para copiar.",
+          statusCopied: "Resultados copiados al portapapeles.",
+          statusManualCopy: "La copia directa fue bloqueada. Los resultados se han seleccionado; pulsa Command+C o usa Copiar.",
+          statusCopyBlocked: "El navegador no permitió copiar. Selecciona y copia los resultados manualmente.",
+          statusFailed: "El cálculo falló. Prueba con enteros más pequeños o revisa el formato de entrada.",
+          integerError: "Introduce un entero, no un decimal, espacio o símbolo.",
+          zeroError: "0 tiene infinitos divisores y no puede listarse como un conjunto finito.",
+          inputErrorTitle: "Error de entrada",
+          notCalculated: "No calculado",
+          systemErrorTitle: "Error del sistema",
+          completeLabel: "Completado.",
+          validInputs: "Entradas válidas",
+          errors: "errores",
+          totalDivisorCount: "Cantidad total de divisores en las entradas válidas",
+          totalDivisorSum: "Suma combinada de todos los divisores",
+          gcd: "MCD de todas las entradas válidas",
+          originalInput: "Entrada original",
+          usedForCalculation: "usado para el cálculo",
+          negativeNote: "la entrada original era negativa; se usó el valor absoluto",
+          divisorCount: "cantidad de divisores",
+          divisorSum: "suma de divisores",
+          divisorsLabel: "Divisores",
+          inputErrorText: function (index) { return "Número " + index + ": error de entrada"; },
+          resultTextPrefix: function (index) { return "Número " + index; }
+        }
+      };
+
+      var els = {};
+
+      function getSavedLanguage() {
+        try {
+          var saved = window.localStorage.getItem(STORAGE_KEY);
+          return translations[saved] ? saved : DEFAULT_LANGUAGE;
+        } catch (error) {
+          return DEFAULT_LANGUAGE;
+        }
+      }
+
+      function saveLanguage(language) {
+        try {
+          window.localStorage.setItem(STORAGE_KEY, language);
+        } catch (error) {
+          // localStorage can be unavailable in some private browsing or restricted environments.
+        }
+      }
+
+      function tr(key) {
+        return translations[currentLanguage][key] || translations[DEFAULT_LANGUAGE][key] || "";
+      }
+
+      function setText(id, value) {
+        if (els[id]) els[id].textContent = value;
+      }
+
+      function setBusy(isBusy) {
+        els.calculateBtn.disabled = isBusy || !supportsBigInt();
+        els.sampleBtn.disabled = isBusy;
+        els.clearBtn.disabled = isBusy;
+        els.copyBtn.disabled = isBusy || !latestDivisorResults;
+      }
+
+      function supportsBigInt() {
+        return typeof window.BigInt === "function";
+      }
+
+      function applyLanguage(language) {
+        currentLanguage = translations[language] ? language : DEFAULT_LANGUAGE;
+        document.documentElement.lang = currentLanguage;
+        document.title = tr("documentTitle");
+
+        setText("pageTitle", tr("pageTitle"));
+        setText("pageLead", tr("pageLead"));
+        setText("languageLabel", tr("languageLabel"));
+        setText("formTitle", tr("formTitle"));
+        setText("inputHint", tr("inputHint"));
+        setText("calculateBtn", tr("calculateButton"));
+        setText("sampleBtn", tr("sampleButton"));
+        setText("copyBtn", tr("copyButton"));
+        setText("clearBtn", tr("clearButton"));
+
+        var labels = els.inputsEl.querySelectorAll("label.input-card");
+        for (var i = 0; i < labels.length; i++) {
+          var textNode = labels[i].firstChild;
+          textNode.nodeValue = tr("inputLabel")(i + 1);
+          var input = labels[i].querySelector("input");
+          input.placeholder = tr("inputPlaceholder")((i + 1) * 12);
+          input.setAttribute("aria-label", tr("inputLabel")(i + 1));
+        }
+
+        if (!supportsBigInt()) {
+          els.statusEl.textContent = tr("statusUnsupported");
+        } else if (!els.statusEl.textContent) {
+          els.statusEl.textContent = tr("statusReady");
+        }
+
+        setBusy(false);
+      }
+
+      function createInputs() {
+        els.inputsEl.innerHTML = "";
+        for (var i = 1; i <= MAX_INPUTS; i++) {
+          var label = document.createElement("label");
+          label.className = "input-card";
+          label.appendChild(document.createTextNode(""));
+          var input = document.createElement("input");
+          input.id = "num" + i;
+          input.type = "text";
+          input.inputMode = "numeric";
+          input.autocomplete = "off";
+          label.appendChild(input);
+          els.inputsEl.appendChild(label);
+        }
+      }
+
+      function normalizeInteger(raw) {
+        var text = String(raw).trim();
+        if (!text) return { skipped: true };
+        if (!/^[+-]?\d+$/.test(text)) {
+          return { error: tr("integerError") };
+        }
+
+        var value = BigInt(text);
+        if (value === BigInt(0)) {
+          return { error: tr("zeroError") };
+        }
+
+        return {
+          value: value < BigInt(0) ? -value : value,
+          original: text,
+          wasNegative: value < BigInt(0)
+        };
+      }
+
+      function gcd(a, b) {
+        a = a < BigInt(0) ? -a : a;
+        b = b < BigInt(0) ? -b : b;
+        while (b !== BigInt(0)) {
+          var t = b;
+          b = a % b;
+          a = t;
+        }
+        return a;
+      }
+
+      function modPow(base, exponent, modulus) {
+        var result = BigInt(1);
+        base = base % modulus;
+        while (exponent > BigInt(0)) {
+          if (exponent % BigInt(2) === BigInt(1)) result = (result * base) % modulus;
+          base = (base * base) % modulus;
+          exponent = exponent / BigInt(2);
+        }
+        return result;
+      }
+
+      function isPrime(n) {
+        if (n < BigInt(2)) return false;
+        var smallPrimes = ["2", "3", "5", "7", "11", "13", "17", "19", "23", "29", "31", "37"];
+        for (var i = 0; i < smallPrimes.length; i++) {
+          var p = BigInt(smallPrimes[i]);
+          if (n === p) return true;
+          if (n % p === BigInt(0)) return false;
+        }
+
+        var d = n - BigInt(1);
+        var s = BigInt(0);
+        while (d % BigInt(2) === BigInt(0)) {
+          d = d / BigInt(2);
+          s++;
+        }
+
+        // Deterministic Miller-Rabin bases for 64-bit integers. For larger integers,
+        // this remains a strong probable-prime test, which is appropriate for a browser calculator.
+        var bases = ["2", "325", "9375", "28178", "450775", "9780504", "1795265022"];
+        for (var j = 0; j < bases.length; j++) {
+          var a = BigInt(bases[j]);
+          if (a % n === BigInt(0)) continue;
+
+          var x = modPow(a, d, n);
+          if (x === BigInt(1) || x === n - BigInt(1)) continue;
+
+          var probablyPrimeForThisBase = false;
+          for (var r = BigInt(1); r < s; r++) {
+            x = (x * x) % n;
+            if (x === n - BigInt(1)) {
+              probablyPrimeForThisBase = true;
+              break;
+            }
+          }
+          if (!probablyPrimeForThisBase) return false;
+        }
+        return true;
+      }
+
+      function pollardRho(n) {
+        if (n % BigInt(2) === BigInt(0)) return BigInt(2);
+        if (n % BigInt(3) === BigInt(0)) return BigInt(3);
+
+        var c = BigInt(1);
+        while (true) {
+          var x = BigInt(2);
+          var y = BigInt(2);
+          var d = BigInt(1);
+
+          // Floyd cycle detection usually finds a non-trivial factor quickly for composite numbers.
+          while (d === BigInt(1)) {
+            x = (x * x + c) % n;
+            y = (y * y + c) % n;
+            y = (y * y + c) % n;
+            var diff = x > y ? x - y : y - x;
+            d = gcd(diff, n);
+          }
+
+          if (d !== n) return d;
+          c++;
+        }
+      }
+
+      function factorize(n, factors) {
+        if (n === BigInt(1)) return factors;
+        if (isPrime(n)) {
+          factors.push(n);
+          return factors;
+        }
+
+        var factor = pollardRho(n);
+        factorize(factor, factors);
+        factorize(n / factor, factors);
+        return factors;
+      }
+
+      function getDivisors(n) {
+        if (n === BigInt(1)) return [BigInt(1)];
+
+        var primeFactors = factorize(n, []).sort(function (a, b) {
+          return a < b ? -1 : a > b ? 1 : 0;
+        });
+
+        var counts = {};
+        var order = [];
+        for (var i = 0; i < primeFactors.length; i++) {
+          var key = primeFactors[i].toString();
+          if (!counts[key]) {
+            counts[key] = 0;
+            order.push(key);
+          }
+          counts[key]++;
+        }
+
+        var divisors = [BigInt(1)];
+        for (var j = 0; j < order.length; j++) {
+          var prime = BigInt(order[j]);
+          var exponent = counts[order[j]];
+          var existing = divisors.slice();
+          var power = BigInt(1);
+
+          for (var e = 1; e <= exponent; e++) {
+            power = power * prime;
+            for (var k = 0; k < existing.length; k++) {
+              divisors.push(existing[k] * power);
+            }
+          }
+        }
+
+        return divisors.sort(function (a, b) {
+          return a < b ? -1 : a > b ? 1 : 0;
+        });
+      }
+
+      function createResultCard(index, title, meta, body, isError) {
+        var card = document.createElement("article");
+        card.className = "result-card";
+
+        var heading = document.createElement("h2");
+        heading.textContent = index + ". " + title;
+
+        var metaEl = document.createElement("p");
+        metaEl.className = "meta";
+        metaEl.textContent = meta;
+
+        var bodyEl = document.createElement("p");
+        bodyEl.className = "divisors" + (isError ? " error" : "");
+        bodyEl.textContent = body;
+
+        card.appendChild(heading);
+        card.appendChild(metaEl);
+        card.appendChild(bodyEl);
+        return card;
+      }
+
+      function frameDelay() {
+        return new Promise(function (resolve) {
+          window.requestAnimationFrame(resolve);
+        });
+      }
+
+      async function calculateAll() {
+        if (!supportsBigInt()) {
+          els.statusEl.textContent = tr("statusUnsupported");
+          return;
+        }
+
+        setBusy(true);
+        els.resultsEl.innerHTML = "";
+        els.summaryEl.hidden = true;
+        els.summaryEl.textContent = "";
+        els.statusEl.textContent = tr("statusCalculating");
+        latestDivisorResults = "";
+
+        var resultTexts = [];
+        var validValues = [];
+        var filledCount = 0;
+        var errorCount = 0;
+        var totalDivisorCount = 0;
+        var totalDivisorSum = BigInt(0);
+
+        try {
+          for (var i = 1; i <= MAX_INPUTS; i++) {
+            var input = document.getElementById("num" + i);
+            var parsed = normalizeInteger(input.value);
+            if (parsed.skipped) continue;
+
+            filledCount++;
+            els.statusEl.textContent = tr("statusProcessing")(i);
+            await frameDelay();
+
+            if (parsed.error) {
+              errorCount++;
+              els.resultsEl.appendChild(createResultCard(i, tr("inputErrorTitle"), tr("notCalculated"), parsed.error, true));
+              resultTexts.push(tr("inputErrorText")(i) + " - " + parsed.error);
+              continue;
+            }
+
+            var divisors = getDivisors(parsed.value);
+            var divisorSum = BigInt(0);
+            for (var d = 0; d < divisors.length; d++) divisorSum += divisors[d];
+
+            totalDivisorCount += divisors.length;
+            totalDivisorSum += divisorSum;
+            validValues.push(parsed.value);
+
+            var negativeNote = parsed.wasNegative ? "; " + tr("negativeNote") : "";
+            var meta = tr("originalInput") + ": " + parsed.original +
+              "; " + tr("usedForCalculation") + ": " + parsed.value.toString() +
+              negativeNote +
+              "; " + tr("divisorCount") + ": " + divisors.length +
+              "; " + tr("divisorSum") + ": " + divisorSum.toString();
+
+            var body = divisors.map(function (value) { return value.toString(); }).join(", ");
+            els.resultsEl.appendChild(createResultCard(i, parsed.value.toString(), meta, body, false));
+            resultTexts.push(tr("resultTextPrefix")(i) + ": " + parsed.original + "\n" + meta + "\n" + tr("divisorsLabel") + ": " + body);
+          }
+
+          if (filledCount === 0) {
+            els.statusEl.textContent = tr("statusNeedInput");
+            return;
+          }
+
+          if (validValues.length > 0) {
+            var commonGcd = validValues[0];
+            for (var g = 1; g < validValues.length; g++) {
+              commonGcd = gcd(commonGcd, validValues[g]);
+            }
+
+            els.summaryEl.hidden = false;
+            els.summaryEl.textContent =
+              tr("completeLabel") + " " +
+              tr("validInputs") + ": " + validValues.length +
+              ", " + tr("errors") + ": " + errorCount +
+              "; " + tr("totalDivisorCount") + " = " + totalDivisorCount +
+              "; " + tr("totalDivisorSum") + " = " + totalDivisorSum.toString() +
+              "; " + tr("gcd") + " = " + commonGcd.toString() + ".";
+
+            resultTexts.unshift(
+              tr("validInputs") + ": " + validValues.length +
+              ", " + tr("errors") + ": " + errorCount +
+              ", " + tr("totalDivisorCount") + " = " + totalDivisorCount +
+              ", " + tr("totalDivisorSum") + " = " + totalDivisorSum.toString() +
+              ", " + tr("gcd") + " = " + commonGcd.toString()
+            );
+
+            latestDivisorResults = resultTexts.join("\n\n");
+            els.statusEl.textContent = tr("statusDone");
+          } else {
+            els.statusEl.textContent = tr("statusNoValid");
+          }
+        } catch (error) {
+          els.statusEl.textContent = tr("statusFailed");
+          els.resultsEl.appendChild(createResultCard("!", tr("systemErrorTitle"), tr("notCalculated"), error.message, true));
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      function fillSample() {
+        var samples = [12, 18, 24, 36, 48, 60, 72, 84, 96, 100, 120, 144, 180, 210, 360];
+        for (var i = 0; i < samples.length; i++) {
+          document.getElementById("num" + (i + 1)).value = samples[i];
+        }
+        els.statusEl.textContent = tr("statusSample");
+      }
+
+      function clearAll() {
+        for (var i = 1; i <= MAX_INPUTS; i++) {
+          document.getElementById("num" + i).value = "";
+        }
+        els.resultsEl.innerHTML = "";
+        els.summaryEl.hidden = true;
+        els.summaryEl.textContent = "";
+        latestDivisorResults = "";
+        els.statusEl.textContent = tr("statusCleared");
+        setBusy(false);
+      }
+
+      function fallbackCopy(text) {
+        var textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.top = "0";
+        textarea.style.left = "-9999px";
+        textarea.style.fontSize = "16px";
+        document.body.appendChild(textarea);
+
+        textarea.focus();
+        textarea.select();
+
+        try {
+          textarea.setSelectionRange(0, textarea.value.length);
+        } catch (error) {
+          // setSelectionRange can fail on some older engines; select() above is still useful.
+        }
+
+        var copied = false;
+        try {
+          copied = document.execCommand("copy");
+        } catch (error2) {
+          copied = false;
+        }
+
+        document.body.removeChild(textarea);
+        return copied;
+      }
+
+      async function copyResults() {
+        if (!latestDivisorResults) {
+          els.statusEl.textContent = tr("statusNoCopy");
+          return;
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+          try {
+            await navigator.clipboard.writeText(latestDivisorResults);
+            els.statusEl.textContent = tr("statusCopied");
+            return;
+          } catch (error) {
+            // Fall through to the compatibility path below.
+          }
+        }
+
+        if (fallbackCopy(latestDivisorResults)) {
+          els.statusEl.textContent = tr("statusCopied");
+        } else {
+          els.statusEl.textContent = tr("statusCopyBlocked");
+        }
+      }
+
+      function cacheElements() {
+        els.pageTitle = document.getElementById("pageTitle");
+        els.pageLead = document.getElementById("pageLead");
+        els.languageLabel = document.getElementById("languageLabel");
+        els.languageSelect = document.getElementById("languageSelect");
+        els.formTitle = document.getElementById("formTitle");
+        els.inputHint = document.getElementById("inputHint");
+        els.inputsEl = document.getElementById("inputs");
+        els.resultsEl = document.getElementById("results");
+        els.summaryEl = document.getElementById("summary");
+        els.statusEl = document.getElementById("status");
+        els.calculateBtn = document.getElementById("calculateBtn");
+        els.sampleBtn = document.getElementById("sampleBtn");
+        els.clearBtn = document.getElementById("clearBtn");
+        els.copyBtn = document.getElementById("copyBtn");
+      }
+
+      function bindEvents() {
+        els.calculateBtn.addEventListener("click", calculateAll);
+        els.sampleBtn.addEventListener("click", fillSample);
+        els.clearBtn.addEventListener("click", clearAll);
+        els.copyBtn.addEventListener("click", copyResults);
+        els.languageSelect.addEventListener("change", function () {
+          applyLanguage(els.languageSelect.value);
+          saveLanguage(currentLanguage);
+        });
+      }
+
+      function init() {
+        cacheElements();
+        createInputs();
+        currentLanguage = getSavedLanguage();
+        els.languageSelect.value = currentLanguage;
+        bindEvents();
+        applyLanguage(currentLanguage);
+
+        if (supportsBigInt()) {
+          els.statusEl.textContent = tr("statusReady");
+        } else {
+          els.statusEl.textContent = tr("statusUnsupported");
+        }
+        setBusy(false);
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+      } else {
+        init();
+      }
+    }());
+  </script>
+</body>
+</html>
